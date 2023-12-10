@@ -1,8 +1,7 @@
-import React from 'react';
 import { AppContainer, Title, FormContainer } from './App.styled';
-import ContactForm from '../ContactForm/ContactForm';
-import ContactList from '../ContactList/ContactList';
-import Filter from '../Filter/Filter';
+import { ContactForm } from 'components/ContactForm';
+import { ContactList } from 'components/ContactList';
+import { Filter } from 'components/Filter';
 
 export const App = () => {
   return (
@@ -17,4 +16,3 @@ export const App = () => {
     </AppContainer>
   );
 };
-export default App;

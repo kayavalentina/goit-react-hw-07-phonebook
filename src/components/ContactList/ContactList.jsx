@@ -1,7 +1,6 @@
-import React from 'react';
-import { getContacts, getFilter } from '../../redux/selectors';
+import { useEffect, useState } from 'react';
+import { deleteContact, fetchContacts } from '../../redux/operations';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteContact } from '../../redux/contactsSlice';
 
 import {
   List,
@@ -12,28 +11,51 @@ import {
   DeleteButton,
 } from './ContactList.styled';
 
-const ContactList = () => {
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter);
+import {
+  selectError,
+  selectIsLoading,
+  selectVisibleContacts,
+} from '../../redux/selectors';
+
+import { Loader } from 'components/Loader';
+
+export const ContactList = () => {
   const dispatch = useDispatch();
+  const visibleContacts = useSelector(selectVisibleContacts);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+  const [contactToDeleteId, setContactToDeleteId] = useState(null);
 
-  const filteredContacts = contacts?.filter(contact =>
-    contact?.name?.toLowerCase().includes(filter.toLowerCase())
-  );
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
-  if (!filteredContacts?.length) {
+  if (!visibleContacts?.length && !error & !isLoading) {
     return <div>No contacts added yet.</div>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
   }
 
   return (
     <List>
-      {filteredContacts.map(({ id, name, number }, idx) => (
+      {visibleContacts.map(({ id, name, number }) => (
         <ListItem key={id}>
           <ContactInfo>
             <Name>{name}</Name>
             <PhoneNumber>{number}</PhoneNumber>
           </ContactInfo>
-          <DeleteButton onClick={() => dispatch(deleteContact(id))}>
+          <DeleteButton
+            onClick={() => {
+              setContactToDeleteId(id);
+              dispatch(deleteContact(id)).then(() => {
+                setContactToDeleteId(null);
+              });
+            }}
+            disabled={isLoading && contactToDeleteId === id}
+          >
+            {contactToDeleteId === id && <Loader />}
             Delete
           </DeleteButton>
         </ListItem>
@@ -41,5 +63,3 @@ const ContactList = () => {
     </List>
   );
 };
-
-export default ContactList;

@@ -1,11 +1,12 @@
-import React from 'react';
+import { useState } from 'react';
 import * as Yup from 'yup';
 import { useSelector, useDispatch } from 'react-redux';
-import { getContacts } from '../../redux/selectors';
-import { addContact } from '../../redux/contactsSlice';
 import { Formik, Form, ErrorMessage } from 'formik';
 import PropTypes from 'prop-types';
 import Notiflix from 'notiflix';
+import { addContact } from '../../redux/operations';
+import { selectIsLoading, selectVisibleContacts } from '../../redux/selectors';
+import { Loader } from 'components/Loader';
 
 import {
   FormContainer,
@@ -15,7 +16,7 @@ import {
   SubmitButton,
 } from './ContactForm.styled';
 
-const validationSchema = Yup.object().shape({
+const schema = Yup.object().shape({
   name: Yup.string()
     .min(2, 'Name should be at least 2 characters long')
     .max(30, 'Name should not exceed 30 characters')
@@ -26,31 +27,36 @@ const validationSchema = Yup.object().shape({
     .max(15, 'Phone number should not exceed 15 digits')
     .required('Phone number is required'),
 });
-const initialValues = {
+const defaultValues = {
   name: '',
   number: '',
 };
-const ContactForm = () => {
+export const ContactForm = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
+  const contacts = useSelector(selectVisibleContacts);
+  const isLoading = useSelector(selectIsLoading);
+  const [determineAddBtn, setDetermineAddBtn] = useState(false);
 
-  const onSubmit = (values, action) => {
+  const handleSubmitForm = (values, action) => {
+    setDetermineAddBtn(true);
     const isInContacts = contacts.some(
       ({ name }) => name.toLowerCase() === values.name.toLowerCase()
     );
     if (isInContacts) {
       return Notiflix.Notify.failure(`${values.name} is already in contacts!`);
     }
-    dispatch(addContact(values));
+    dispatch(addContact(values)).then(() => {
+      setDetermineAddBtn(false);
+    });
     action.resetForm();
   };
 
   return (
     <FormContainer>
       <Formik
-        initialValues={initialValues}
-        validationSchema={validationSchema}
-        onSubmit={onSubmit}
+        initialValues={defaultValues}
+        onSubmit={handleSubmitForm}
+        validationSchema={schema}
       >
         <Form>
           <div>
@@ -68,7 +74,10 @@ const ContactForm = () => {
             />
             <ErrorMessage name="number" component={ErrorMessageContainer} />
           </div>
-          <SubmitButton type="submit">Add contact</SubmitButton>
+          <SubmitButton type="submit" disabled={isLoading && determineAddBtn}>
+            {isLoading && determineAddBtn && <Loader />}
+            Add Contact
+          </SubmitButton>
         </Form>
       </Formik>
     </FormContainer>
@@ -78,5 +87,3 @@ const ContactForm = () => {
 ContactForm.propTypes = {
   onSubmit: PropTypes.func,
 };
-
-export default ContactForm;

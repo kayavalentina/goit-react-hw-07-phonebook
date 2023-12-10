@@ -3,22 +3,18 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 
 axios.defaults.baseURL = 'https://6574b9a5b2fbb8f6509c96bc.mockapi.io';
 
-export const fetchTasks = createAsyncThunk(
-  "tasks/fetchAll",
-  // Використовуємо символ підкреслення як ім'я першого параметра,
-  // тому що в цій операції він нам не потрібен
+export const fetchContacts = createAsyncThunk(
+  'contacts/fetchContacts',
   async (_, thunkAPI) => {
     try {
-      const response = await axios.get("/tasks");
-      // При успішному запиті повертаємо проміс із даними
+      const response = await axios.get('/contacts');
       return response.data;
-    } catch (e) {
-      // При помилці запиту повертаємо проміс
-      // який буде відхилений з текстом помилки
-      return thunkAPI.rejectWithValue(e.message);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
     }
   }
 );
+
 export const addContact = createAsyncThunk(
   'contacts/addContact',
   async (contact, thunkAPI) => {
@@ -30,15 +26,15 @@ export const addContact = createAsyncThunk(
     }
   }
 );
-export const deleteTask = createAsyncThunk(
-  "tasks/deleteTask",
-  async (taskId, thunkAPI) => {
+
+export const deleteContact = createAsyncThunk(
+  'contacts/deleteContact',
+  async (contactId, thunkAPI) => {
     try {
-      const response = await axios.delete(`/tasks/${taskId}`);
+      const response = await axios.delete(`/contacts/${contactId}`);
       return response.data;
-    } catch (e) {
-      return thunkAPI.rejectWithValue(e.message);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
     }
   }
 );
-
